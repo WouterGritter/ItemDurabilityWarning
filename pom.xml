@@ -4,22 +4,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Change this! -->
     <groupId>me.woutergritter</groupId>
     <artifactId>plugin-template</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <!-- Plugin information (used in plugin.yml) -->
-    <!-- Change this! -->
-    <name>PluginTemplate</name>
-    <description>Plugin template</description>
+    <name>ItemDurabilityWarning</name>
+    <description>ItemDurabilityWarning</description>
     <url>https://woutergritter.me/</url>
 
     <properties>
         <!-- Plugin information (used in plugin.yml) -->
-        <!-- Change this! -->
         <author>Wouter Gritter</author>
-        <mainClass>me.woutergritter.plugintemplate.Main</mainClass>
+        <mainClass>me.woutergritter.itemdurabilitywarning.Main</mainClass>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -29,12 +26,6 @@
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
-        </repository>
-
-        <!-- Used by lots of plugins -->
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
