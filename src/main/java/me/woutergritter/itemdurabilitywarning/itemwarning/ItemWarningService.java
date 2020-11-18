@@ -134,7 +134,11 @@ public class ItemWarningService implements Listener {
         }
 
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-        pdc.set(warningsIgnoredKey, PersistentDataType.BYTE, ignored ? (byte) 1 : (byte) 0);
+        if(ignored) {
+            pdc.set(warningsIgnoredKey, PersistentDataType.BYTE, (byte) 1);
+        }else{
+            pdc.remove(warningsIgnoredKey);
+        }
 
         itemStack.setItemMeta(itemMeta);
     }
