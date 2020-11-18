@@ -1,0 +1,8 @@
+# Whether the warnings are enabled if the player hasn't enabled or disabled it by themself.
+default-enabled: true
+
+# If the item durability gets below this percentage, a subtle warning will be displayed (a message above the hotbar).
+subtle-warning-percent: 10.0
+
+# If the item durability gets below this percentage, a large warning will be displayed (title).
+large-warning-percent: 5.0

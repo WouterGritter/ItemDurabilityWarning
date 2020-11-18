@@ -13,5 +13,33 @@ common:
   invalid-number: '&cInvalid number ''%s''!'
   invalid-decimal-number: '&cInvalid decimal number ''%s''!'
 
-example-cmd:
-  output: '&aThe /example command is working!'
+itemwarnings-cmd:
+  status:
+    enabled: '&6Your item durability warnings are &aenabled&6!'
+    disabled: '&6Your item durability warnings are &cdisabled&6!'
+
+  help:
+    - '&6/itemwarnings &e- Show the current state of the item warnings.'
+    - '&6/itemwarnings help &e- Show this help'
+    - '&6/itemwarnings ignore &e- Toggle ignore warnings for the item you have in your hand.'
+    - '&6/itemwarnings enable &e- Enable the warnings.'
+    - '&6/itemwarnings disable &e- Disable the warnings.'
+
+  ignore:
+    invalid-item-in-hand: '&cPlease hold an item in your hand that can have durability!'
+
+    successfully-ignored: '&6Successfully &cignored &6that item!'
+    successfully-unignored: '&6Successfully &aunignored &6that item!'
+
+  set:
+    already-enabled: '&cYour item durability warnings are already enabled!'
+    already-disabled: '&cYour item durability warnings are already disabled!'
+
+    successfully-enabled: '&6Your item durability warnings are now &aenabled&6!'
+    successfully-disabled: '&6Your item durability warnings are now &cdisabled&6!'
+
+subtle-warning: '&cYour item has a durability below &6%.2f%%&c!'
+
+large-warning:
+  title: ''
+  sub-title: '&cYour item has a durability below &6%.2f%%&c!'

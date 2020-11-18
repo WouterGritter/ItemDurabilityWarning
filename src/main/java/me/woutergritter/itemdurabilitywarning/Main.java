@@ -1,8 +1,9 @@
 package me.woutergritter.itemdurabilitywarning;
 
-import me.woutergritter.itemdurabilitywarning.command.ExampleCMD;
+import me.woutergritter.itemdurabilitywarning.command.ItemwarningsCMD;
 import me.woutergritter.itemdurabilitywarning.config.Config;
 import me.woutergritter.itemdurabilitywarning.config.LangConfig;
+import me.woutergritter.itemdurabilitywarning.itemwarning.ItemWarningService;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
@@ -13,6 +14,7 @@ public class Main extends JavaPlugin {
     private LangConfig langConfig;
 
     // -- Managers -- //
+    private ItemWarningService itemWarningService;
 
     @Override
     public void onEnable() {
@@ -23,14 +25,19 @@ public class Main extends JavaPlugin {
         langConfig = new LangConfig("lang.yml");
 
         // Managers
+        itemWarningService = new ItemWarningService();
 
         // Commands
-        new ExampleCMD().register();
+        new ItemwarningsCMD().register();
     }
 
     @Override
     public void onDisable() {
         instance = null;
+    }
+
+    public ItemWarningService getItemWarningService() {
+        return itemWarningService;
     }
 
     public LangConfig getLang() {
