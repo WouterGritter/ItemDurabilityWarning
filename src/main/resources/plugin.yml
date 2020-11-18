@@ -1,0 +1,6 @@
+main: ${mainClass}
+name: ${name}
+version: ${version}
+description: ${description}
+author: ${author}
+website: ${url}
