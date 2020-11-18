@@ -82,4 +82,8 @@ public abstract class WCommand extends Command {
 
         return res;
     }
+
+    public static List<String> tabCompletePossibilities(String arg, String... possibilities) {
+        return tabCompletePossibilities(arg, false, possibilities);
+    }
 }
