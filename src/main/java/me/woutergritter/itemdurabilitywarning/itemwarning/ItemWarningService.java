@@ -3,6 +3,7 @@ package me.woutergritter.itemdurabilitywarning.itemwarning;
 import me.woutergritter.itemdurabilitywarning.Main;
 import me.woutergritter.itemdurabilitywarning.Permissions;
 import me.woutergritter.itemdurabilitywarning.util.data.Pair;
+import me.woutergritter.itemdurabilitywarning.util.string.StringUtils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -93,17 +94,19 @@ public class ItemWarningService implements Listener {
                         );
                     }
 
+                    double durabilityPercent = 1.0 - (double) ((Damageable) item.getItemMeta()).getDamage() / (double) item.getType().getMaxDurability();
                     player.sendTitle(
-                            Main.instance().getLang().getMessage("large-warning.title", cfg_largeWarningPercent * 100.0),
-                            Main.instance().getLang().getMessage("large-warning.sub-title", cfg_largeWarningPercent * 100.0),
+                            Main.instance().getLang().getMessage("large-warning.title", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0),
+                            Main.instance().getLang().getMessage("large-warning.sub-title", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0),
                             fadeIn,
                             stay,
                             fadeOut
                     );
                 }else if(itemWarning == WarningType.SUBTLE) {
                     // Subtle warning!
+                    double durabilityPercent = 1.0 - (double) ((Damageable) item.getItemMeta()).getDamage() / (double) item.getType().getMaxDurability();
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
-                            Main.instance().getLang().getMessage("subtle-warning", cfg_subtleWarningPercent * 100.0)
+                            Main.instance().getLang().getMessage("subtle-warning", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0)
                     ));
                 }
             }

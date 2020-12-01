@@ -38,8 +38,8 @@ itemwarnings-cmd:
     successfully-enabled: '&6Your item durability warnings are now &aenabled&6!'
     successfully-disabled: '&6Your item durability warnings are now &cdisabled&6!'
 
-subtle-warning: '&cYour item has a durability below &6%.2f%%&c!'
+subtle-warning: '&cYour %s has a durability of &6%.2f%%&c!'
 
 large-warning:
   title: ''
-  sub-title: '&cYour item has a durability below &6%.2f%%&c!'
+  sub-title: '&cYour %s has a durability of &6%.2f%%&c!'
