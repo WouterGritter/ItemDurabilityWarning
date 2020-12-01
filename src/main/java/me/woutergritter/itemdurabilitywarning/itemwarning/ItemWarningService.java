@@ -2,10 +2,10 @@ package me.woutergritter.itemdurabilitywarning.itemwarning;
 
 import me.woutergritter.itemdurabilitywarning.Main;
 import me.woutergritter.itemdurabilitywarning.Permissions;
+import me.woutergritter.itemdurabilitywarning.util.data.Pair;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -60,49 +60,51 @@ public class ItemWarningService implements Listener {
             if(isWarningsEnabled(player)) {
                 // The player has item durability warnings enabled..
 
-                ItemStack hand = player.getInventory().getItemInMainHand();
-                ItemMeta itemMeta = hand.getItemMeta();
+                Pair<ItemStack, WarningType> highestWarning = getHighestWarningType(
+                        player.getInventory().getItemInMainHand(),
+                        player.getInventory().getItemInOffHand(),
+                        player.getInventory().getHelmet(),
+                        player.getInventory().getChestplate(),
+                        player.getInventory().getLeggings(),
+                        player.getInventory().getBoots()
+                );
 
-                if(hand.getType().getMaxDurability() > 0 && itemMeta instanceof Damageable && !isItemWarningsIgnored(hand)) {
-                    // The item in the player's hand can have durability, and the item isn't ignored..
+                ItemStack item = highestWarning.a;
+                WarningType itemWarning = highestWarning.b;
 
-                    Damageable damageableMeta = (Damageable) itemMeta;
-                    double damageLeft = 1.0 - (double) damageableMeta.getDamage() / (double) hand.getType().getMaxDurability();
+                if(itemWarning == WarningType.LARGE) {
+                    // Large warning!
+                    hasLargeWarning = true;
 
-                    if(damageLeft < cfg_largeWarningPercent) {
-                        // Large warning!
-                        hasLargeWarning = true;
+                    int fadeIn = 0;
+                    int stay = 15;
+                    int fadeOut = 10;
 
-                        int fadeIn = 0;
-                        int stay = 15;
-                        int fadeOut = 10;
+                    if(!playersWithLargeWarning.contains(player)) {
+                        playersWithLargeWarning.add(player);
 
-                        if(!playersWithLargeWarning.contains(player)) {
-                            playersWithLargeWarning.add(player);
+                        // Player didn't have this warning before..
+                        fadeIn = 10;
 
-                            // Player didn't have this warning before..
-                            fadeIn = 10;
-
-                            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.9f);
-                            Bukkit.getScheduler().runTaskLater(Main.instance(),
-                                    () -> player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.9f),
-                                    2
-                            );
-                        }
-
-                        player.sendTitle(
-                                Main.instance().getLang().getMessage("large-warning.title", cfg_largeWarningPercent * 100.0),
-                                Main.instance().getLang().getMessage("large-warning.sub-title", cfg_largeWarningPercent * 100.0),
-                                fadeIn,
-                                stay,
-                                fadeOut
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.9f);
+                        Bukkit.getScheduler().runTaskLater(Main.instance(),
+                                () -> player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.9f),
+                                2
                         );
-                    }else if(damageLeft < cfg_subtleWarningPercent) {
-                        // Subtle warning!
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
-                                Main.instance().getLang().getMessage("subtle-warning", cfg_subtleWarningPercent * 100.0)
-                        ));
                     }
+
+                    player.sendTitle(
+                            Main.instance().getLang().getMessage("large-warning.title", cfg_largeWarningPercent * 100.0),
+                            Main.instance().getLang().getMessage("large-warning.sub-title", cfg_largeWarningPercent * 100.0),
+                            fadeIn,
+                            stay,
+                            fadeOut
+                    );
+                }else if(itemWarning == WarningType.SUBTLE) {
+                    // Subtle warning!
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
+                            Main.instance().getLang().getMessage("subtle-warning", cfg_subtleWarningPercent * 100.0)
+                    ));
                 }
             }
 
@@ -110,6 +112,40 @@ public class ItemWarningService implements Listener {
                 playersWithLargeWarning.remove(player);
             }
         });
+    }
+
+    private WarningType getWarningType(ItemStack item) {
+        if(item == null) {
+            return WarningType.NONE;
+        }
+
+        if(item.getType().getMaxDurability() > 0 && item.getItemMeta() instanceof Damageable && !isItemWarningsIgnored(item)) {
+            Damageable damageableMeta = (Damageable) item.getItemMeta();
+            double damageLeft = 1.0 - (double) damageableMeta.getDamage() / (double) item.getType().getMaxDurability();
+
+            if(damageLeft < cfg_largeWarningPercent) {
+                return WarningType.LARGE;
+            }else if(damageLeft < cfg_subtleWarningPercent) {
+                return WarningType.SUBTLE;
+            }
+        }
+
+        return WarningType.NONE;
+    }
+
+    private Pair<ItemStack, WarningType> getHighestWarningType(ItemStack... items) {
+        ItemStack highestItem = null;
+        WarningType highestWarning = WarningType.NONE;
+
+        for(ItemStack item : items) {
+            WarningType itemWarning = getWarningType(item);
+            if(itemWarning.isHigherPriorityThan(highestWarning)) {
+                highestItem = item;
+                highestWarning = itemWarning;
+            }
+        }
+
+        return new Pair<>(highestItem, highestWarning);
     }
 
     public void setWarningsEnabled(Player player, boolean enabled) {
