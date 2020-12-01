@@ -6,3 +6,9 @@ subtle-warning-percent: 10.0
 
 # If the item durability gets below this percentage, a large warning will be displayed (title).
 large-warning-percent: 5.0
+
+# Only give warnings to items / tools / armor if the name contains (or is equal to) an item of this list.
+# Set to an empty list ( [] ) to give warnings on ALL materials.
+material-filter:
+  - diamond
+  - elytra

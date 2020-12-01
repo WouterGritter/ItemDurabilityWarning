@@ -20,11 +20,13 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemWarningService implements Listener {
     private final boolean cfg_defaultEnabled;
     private final double cfg_subtleWarningPercent;
     private final double cfg_largeWarningPercent;
+    private final List<String> cfg_materialFilter;
 
     private final NamespacedKey warningsEnabledKey;
     private final NamespacedKey warningsIgnoredKey;
@@ -35,6 +37,9 @@ public class ItemWarningService implements Listener {
         cfg_defaultEnabled = Main.instance().getConfig().getBoolean("default-enabled");
         cfg_subtleWarningPercent = Main.instance().getConfig().getDouble("subtle-warning-percent") / 100.0; // Convert from 0-100 > 0-1
         cfg_largeWarningPercent = Main.instance().getConfig().getDouble("large-warning-percent") / 100.0; // Convert from 0-100 > 0-1
+        cfg_materialFilter = Main.instance().getConfig().getStringList("material-filter").stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toList());
 
         warningsEnabledKey = new NamespacedKey(Main.instance(), "warnings_enabled");
         warningsIgnoredKey = new NamespacedKey(Main.instance(), "warnings_ignored");
@@ -144,6 +149,22 @@ public class ItemWarningService implements Listener {
     }
 
     public boolean isItemWarningsIgnored(ItemStack itemStack) {
+        if(!cfg_materialFilter.isEmpty()) {
+            // Check if the material filter contains this item
+            String itemName = itemStack.getType().name();
+            boolean contains = false;
+            for(String filter : cfg_materialFilter) {
+                if(itemName.contains(filter)) {
+                    contains = true;
+                    break;
+                }
+            }
+
+            if(!contains) {
+                return true; // Ignored!
+            }
+        }
+
         ItemMeta itemMeta = itemStack.getItemMeta();
         if(itemMeta == null) {
             throw new NullPointerException("The ItemStack must have a valid ItemMeta.");
