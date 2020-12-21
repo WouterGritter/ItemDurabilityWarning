@@ -2,11 +2,11 @@ package me.woutergritter.itemdurabilitywarning.itemwarning;
 
 import me.woutergritter.itemdurabilitywarning.Main;
 import me.woutergritter.itemdurabilitywarning.Permissions;
-import me.woutergritter.itemdurabilitywarning.util.data.Pair;
 import me.woutergritter.itemdurabilitywarning.util.string.StringUtils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -20,7 +20,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ItemWarningService implements Listener {
@@ -56,12 +58,10 @@ public class ItemWarningService implements Listener {
 
     private void tick() {
         Bukkit.getOnlinePlayers().forEach(player -> {
-            boolean hasLargeWarning = false;
-
             if(isWarningsEnabled(player)) {
                 // The player has item durability warnings enabled..
 
-                Pair<ItemStack, WarningType> highestWarning = getHighestWarningType(
+                Map<WarningType, List<ItemStack>> warnings = calculateWarningTypes(
                         player.getInventory().getItemInMainHand(),
                         player.getInventory().getItemInOffHand(),
                         player.getInventory().getHelmet(),
@@ -70,12 +70,8 @@ public class ItemWarningService implements Listener {
                         player.getInventory().getBoots()
                 );
 
-                ItemStack item = highestWarning.a;
-                WarningType itemWarning = highestWarning.b;
-
-                if(itemWarning == WarningType.LARGE) {
+                if(warnings.containsKey(WarningType.LARGE)) {
                     // Large warning!
-                    hasLargeWarning = true;
 
                     int fadeIn = 0;
                     int stay = 15;
@@ -94,30 +90,30 @@ public class ItemWarningService implements Listener {
                         );
                     }
 
-                    double durabilityPercent = 1.0 - (double) ((Damageable) item.getItemMeta()).getDamage() / (double) item.getType().getMaxDurability();
-                    player.sendTitle(
-                            Main.instance().getLang().getMessage("large-warning.title", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0),
-                            Main.instance().getLang().getMessage("large-warning.sub-title", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0),
-                            fadeIn,
-                            stay,
-                            fadeOut
-                    );
-                }else if(itemWarning == WarningType.SUBTLE) {
-                    // Subtle warning!
-                    double durabilityPercent = 1.0 - (double) ((Damageable) item.getItemMeta()).getDamage() / (double) item.getType().getMaxDurability();
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
-                            Main.instance().getLang().getMessage("subtle-warning", StringUtils.prettifyString(item.getType().name()), durabilityPercent * 100.0)
-                    ));
-                }
-            }
+                    String itemWarningString = createItemWarningString(warnings.get(WarningType.LARGE));
 
-            if(!hasLargeWarning) {
-                playersWithLargeWarning.remove(player);
+                    player.sendTitle(
+                            Main.instance().getLang().getMessage("warning.large.title", itemWarningString),
+                            Main.instance().getLang().getMessage("warning.large.sub-title", itemWarningString),
+                            fadeIn, stay, fadeOut
+                    );
+                }else{
+                    playersWithLargeWarning.remove(player);
+                }
+
+                if(warnings.containsKey(WarningType.SUBTLE)) {
+                    // Subtle warning!
+
+                    String itemWarningString = createItemWarningString(warnings.get(WarningType.SUBTLE));
+
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
+                            Main.instance().getLang().getMessage("warning.subtle", itemWarningString)));
+                }
             }
         });
     }
 
-    private WarningType getWarningType(ItemStack item) {
+    private WarningType calculateWarningType(ItemStack item) {
         if(item == null) {
             return WarningType.NONE;
         }
@@ -136,19 +132,28 @@ public class ItemWarningService implements Listener {
         return WarningType.NONE;
     }
 
-    private Pair<ItemStack, WarningType> getHighestWarningType(ItemStack... items) {
-        ItemStack highestItem = null;
-        WarningType highestWarning = WarningType.NONE;
-
+    private Map<WarningType, List<ItemStack>> calculateWarningTypes(ItemStack... items) {
+        Map<WarningType, List<ItemStack>> res = new HashMap<>();
         for(ItemStack item : items) {
-            WarningType itemWarning = getWarningType(item);
-            if(itemWarning.isHigherPriorityThan(highestWarning)) {
-                highestItem = item;
-                highestWarning = itemWarning;
-            }
+            WarningType itemWarning = calculateWarningType(item);
+            res.computeIfAbsent(itemWarning, k -> new ArrayList<>())
+                    .add(item);
         }
 
-        return new Pair<>(highestItem, highestWarning);
+        return res;
+    }
+
+    private String createItemWarningString(List<ItemStack> items) {
+        return items.stream()
+                .map(item -> {
+                    ItemMeta itemMeta = item.getItemMeta();
+
+                    String name = itemMeta.hasDisplayName() ? ChatColor.stripColor(itemMeta.getDisplayName()) : StringUtils.prettifyString(item.getType().name());
+                    double durabilityPercent = 1.0 - (double) ((Damageable) itemMeta).getDamage() / (double) item.getType().getMaxDurability();
+
+                    return Main.instance().getLang().getMessage("warning.item-entry", name, durabilityPercent * 100.0);
+                })
+                .collect(Collectors.joining(Main.instance().getLang().getMessage("warning.entry-delimiter")));
     }
 
     public void setWarningsEnabled(Player player, boolean enabled) {
